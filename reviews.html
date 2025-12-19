@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Reviews</title>
+  <link rel="stylesheet" href="review.css">
+</head>
+<body>
+
+  <header>
+    <h1>Customer Reviews</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="history.html">Our History</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="reviews-container">
+    <h2>What Our Guests Are Saying</h2>
+
+    <div id="reviews">
+      <!-- Example review -->
+      <div class="review">
+        <h3>John Doe</h3>
+        <p>⭐⭐⭐⭐⭐</p>
+        <p>"Fantastic experience! The staff was incredibly welcoming, and the rooms were beyond comfortable. Highly recommend!"</p>
+      </div>
+      
+      <div class="review">
+        <h3>Jane Smith</h3>
+        <p>⭐⭐⭐⭐</p>
+        <p>"Great location, beautiful hotel. The service could have been a bit faster, but overall a wonderful stay."</p>
+      </div>
+    </div>
+
+    <h3>Submit Your Review</h3>
+    <form id="review-form">
+      <label for="name">Your Name</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="rating">Rating</label>
+      <select id="rating" name="rating" required>
+        <option value="1">⭐</option>
+        <option value="2">⭐⭐</option>
+        <option value="3">⭐⭐⭐</option>
+        <option value="4">⭐⭐⭐⭐</option>
+        <option value="5">⭐⭐⭐⭐⭐</option>
+      </select>
+
+      <label for="review">Your Review</label>
+      <textarea id="review" name="review" rows="4" required></textarea>
+
+      <button type="submit">Submit Review</button>
+    </form>
+  </section>
+
+  <footer>
+    <p>© 2024 Our Hotel. All Rights Reserved.</p>
+  </footer>
+
+  <script src="reviews.js"></script>
+
+</body>
+</html>
