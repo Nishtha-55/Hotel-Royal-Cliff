@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EV Charging Finder</title>
+<style>
+:root{--bg:#eef1f2;--card:#fff;--ink:#263238;--mut:#68767d;--line:#d5dcdf;--tq:#14a8a0;--tq2:#0d7f79;--tqs:#dff4f2;--gr:#455a64;--map:#e6ecee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b2225;--card:#252e32;--ink:#e6eced;--mut:#98a7ad;--line:#38454a;--tq:#2cc9c0;--tq2:#5fe0d8;--tqs:#1d3b3b;--gr:#90a4ae;--map:#202a2d}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--gr);color:#fff;display:flex;align-items:center;gap:18px;padding:12px 22px;flex-wrap:wrap}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--gr);z-index:10}
+.logo{font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px;color:#fff;text-decoration:none}
+.logo i{background:var(--tq);width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-style:normal}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav a{color:#dfe7ea;text-decoration:none;padding:6px 13px;border-radius:20px;font-size:14px}
+nav a:hover{background:rgba(255,255,255,.12)}nav a.on{background:var(--tq);color:#fff}
+main{max-width:980px;margin:0 auto;padding:26px 18px 50px}
+h1{font-size:28px;margin:0 0 6px}h2{font-size:19px;margin:0 0 10px}
+.sub{color:var(--mut);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.hero{background:linear-gradient(135deg,var(--gr),var(--tq2));color:#fff;border:0;padding:34px 26px}
+.hero p{max-width:560px;opacity:.92}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.step b{display:inline-grid;place-items:center;width:26px;height:26px;background:var(--tqs);color:var(--tq2);border-radius:50%;margin-bottom:6px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+input,select{font:inherit;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-width:0}
+input:focus,select:focus{outline:2px solid var(--tq);border-color:transparent}
+.row input.grow{flex:1;min-width:180px}
+button,.btn{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 18px;background:var(--tq);color:#fff;font-weight:600;text-decoration:none;display:inline-block}
+button:hover,.btn:hover{background:var(--tq2)}
+button.g{background:var(--bg);color:var(--ink);border:1px solid var(--line)}button.g:hover{border-color:var(--tq)}
+button.s{padding:5px 11px;font-size:13px}
+.chip{background:var(--tqs);color:var(--tq2);border:0;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.stat{display:flex;gap:22px;flex-wrap:wrap;margin:10px 0 4px}.stat div span{display:block;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}.stat div b{font-size:20px;color:var(--tq2)}
+svg.map{width:100%;height:auto;border-radius:12px;background:var(--map);margin-top:12px;display:block}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:12px;background:var(--tqs);color:var(--tq2)}
+.warn{font-size:13px;color:var(--mut);border-left:3px solid var(--tq);padding-left:10px;margin-top:12px}
+.msg{color:#b3463a;margin-top:10px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--mut);font-size:12px;text-transform:uppercase}
+.li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}.li:last-child{border:0}
+.mut{color:var(--mut);font-size:13px}code{background:var(--bg);padding:1px 6px;border-radius:5px;font-size:13px}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:0 18px 26px}
+</style></head><body>
+<header><a class="logo" href="#home"><i>⚡</i>EV Charging Finder</a>
+<nav id="nav"><a href="#home">Home</a><a href="#finder">Finder</a><a href="#stations">Stations</a><a href="#saved">Saved</a><a href="#about">About</a></nav></header>
+<main id="app"></main>
+<footer>Mini project prototype · Kanpur Institute of Technology · Based on the EV-Charging-Finder </footer>
+<script>
+// ---- storage helpers (every access guarded) ----
+const L=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+const P=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let hist=L('evf_hist',[]),fav=L('evf_fav',[]),custom=L('evf_custom',[]),last=L('evf_last',null);
+// ---- sample data (illustrative, not verified) ----
+const BASE=[["Kanpur Civil Lines Hub","Uttar Pradesh","Kanpur","Civil Lines, Kanpur",26.4670,80.3500,"DC Fast"],["Kanpur Kalyanpur Point","Uttar Pradesh","Kanpur","Kalyanpur, Kanpur",26.5100,80.2400,"AC"],["Lucknow Gomti Nagar Station","Uttar Pradesh","Lucknow","Gomti Nagar, Lucknow",26.8500,81.0000,"DC Fast"],["Lucknow Hazratganj Charger","Uttar Pradesh","Lucknow","Hazratganj, Lucknow",26.8467,80.9462,"AC"],["Prayagraj Civil Lines Charger","Uttar Pradesh","Prayagraj","Civil Lines, Prayagraj",25.4520,81.8350,"AC"],["Varanasi Cantt Station","Uttar Pradesh","Varanasi","Cantonment, Varanasi",25.3300,83.0100,"DC Fast"],["Agra Taj Road Charger","Uttar Pradesh","Agra","Taj Road, Agra",27.1700,78.0300,"AC"],["Noida Sector 62 Hub","Uttar Pradesh","Noida","Sector 62, Noida",28.6270,77.3650,"DC Fast"],["CP Metro Charging Bay","Delhi","New Delhi","Connaught Place, New Delhi",28.6330,77.2200,"DC Fast"],["Gurugram Cyber Hub Station","Haryana","Gurugram","Cyber Hub, Gurugram",28.4950,77.0890,"DC Fast"],["Chandigarh Sector 17 Charger","Chandigarh","Chandigarh","Sector 17, Chandigarh",30.7390,76.7830,"AC"],["Jaipur MI Road Station","Rajasthan","Jaipur","MI Road, Jaipur",26.9170,75.8000,"DC Fast"],["Ahmedabad SG Highway Hub","Gujarat","Ahmedabad","SG Highway, Ahmedabad",23.0300,72.5000,"DC Fast"],["Mumbai Colaba Charging Point","Maharashtra","Mumbai","Colaba, Mumbai",18.9200,72.8330,"AC"],["Mumbai BKC Hub","Maharashtra","Mumbai","Bandra Kurla Complex, Mumbai",19.0670,72.8680,"DC Fast"],["Pune Hinjewadi Station","Maharashtra","Pune","Hinjewadi, Pune",18.5900,73.7380,"DC Fast"],["Nagpur Civil Lines Charger","Maharashtra","Nagpur","Civil Lines, Nagpur",21.1500,79.0800,"AC"],["Bhopal MP Nagar Station","Madhya Pradesh","Bhopal","MP Nagar, Bhopal",23.2330,77.4300,"AC"],["Indore Vijay Nagar Hub","Madhya Pradesh","Indore","Vijay Nagar, Indore",22.7530,75.8930,"DC Fast"],["Hyderabad HITEC City Station","Telangana","Hyderabad","HITEC City, Hyderabad",17.4430,78.3770,"DC Fast"],["Bengaluru Indiranagar Hub","Karnataka","Bengaluru","Indiranagar, Bengaluru",12.9780,77.6400,"DC Fast"],["Chennai T Nagar Charger","Tamil Nadu","Chennai","T Nagar, Chennai",13.0420,80.2340,"AC"],["Kolkata Salt Lake Station","West Bengal","Kolkata","Salt Lake, Kolkata",22.5800,88.4200,"DC Fast"],["Bhubaneswar Patia Hub","Odisha","Bhubaneswar","Patia, Bhubaneswar",20.3560,85.8190,"DC Fast"],["Patna Boring Road Charger","Bihar","Patna","Boring Road, Patna",25.6150,85.1300,"AC"]].map((r,i)=>({id:'b'+i,name:r[0],state:r[1],city:r[2],address:r[3],lat:r[4],lon:r[5],type:r[6]}));
+const GAZ={"kanpur":[26.4499,80.3319],"lucknow":[26.8467,80.9462],"prayagraj":[25.4358,81.8463],"allahabad":[25.4358,81.8463],"varanasi":[25.3176,82.9739],"agra":[27.1767,78.0081],"noida":[28.5355,77.3910],"connaught place":[28.6315,77.2167],"delhi":[28.6139,77.2090],"new delhi":[28.6139,77.2090],"gurugram":[28.4595,77.0266],"chandigarh":[30.7333,76.7794],"jaipur":[26.9124,75.7873],"ahmedabad":[23.0225,72.5714],"gateway of india":[18.9220,72.8347],"mumbai":[19.0760,72.8777],"pune":[18.5204,73.8567],"nagpur":[21.1458,79.0882],"bhopal":[23.2599,77.4126],"indore":[22.7196,75.8577],"hyderabad":[17.3850,78.4867],"bengaluru":[12.9716,77.5946],"bangalore":[12.9716,77.5946],"chennai":[13.0827,80.2707],"kolkata":[22.5726,88.3639],"bhubaneswar":[20.2961,85.8245],"patna":[25.5941,85.1376],"jhansi":[25.4484,78.5685],"gorakhpur":[26.7606,83.3732]};
+// ---- core logic (mirrors map_generator.py) ----
+const all=()=>BASE.concat(custom);
+const geocode=q=>{q=q.toLowerCase().trim();const m=q.match(/^(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)$/);if(m)return[+m[1],+m[3]];
+ let k=Object.keys(GAZ).sort((a,b)=>b.length-a.length).find(k=>q.includes(k));return k?GAZ[k]:null};
+const geo=(a,b)=>{const r=Math.PI/180,R=6371.0088,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,h=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+const nearest=u=>{let best=null,min=Infinity;all().forEach(s=>{if(isNaN(s.lat)||isNaN(s.lon))return;const d=geo(u,[s.lat,s.lon]);if(d<min){min=d;best=s}});return[best,min]};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let msg='';
+function search(q){q=(q||'').trim();msg='';if(!q){msg='Please enter a place name.';return render()}
+ const u=geocode(q);if(!u){msg='Location not found. Try a city name from the demo list, or enter coordinates like 26.45, 80.33.';return render()}
+ const[s,d]=nearest(u);if(!s){msg='No stations available.';return render()}
+ last={q,u,sid:s.id,km:d,t:Date.now()};P('evf_last',last);
+ hist=[{q,city:s.city,name:s.name,km:d,t:last.t}].concat(hist).slice(0,20);P('evf_hist',hist);render()}
+function mapSVG(u,s){const a=u,b=[s.lat,s.lon],W=640,H=360,pad=70,cl=Math.cos((a[0]+b[0])/2*Math.PI/180);
+ const dx=Math.max(Math.abs(b[1]-a[1])*cl,.05),dy=Math.max(Math.abs(b[0]-a[0]),.05),sc=Math.min((W-2*pad)/dx,(H-2*pad)/dy);
+ const cx=(a[1]+b[1])/2,cy=(a[0]+b[0])/2,p=q=>[W/2+(q[1]-cx)*cl*sc,H/2-(q[0]-cy)*sc],A=p(a),B=p(b);
+ const mx=(A[0]+B[0])/2,my=(A[1]+B[1])/2,nx=-(B[1]-A[1])*.18,ny=(B[0]-A[0])*.18;let g='';
+ for(let i=1;i<8;i++)g+=`<line x1="${i*80}" y1="0" x2="${i*80}" y2="${H}"/>`;for(let i=1;i<5;i++)g+=`<line x1="0" y1="${i*72}" x2="${W}" y2="${i*72}"/>`;
+ return`<svg class="map" viewBox="0 0 ${W} ${H}" role="img" aria-label="Route map"><g stroke="var(--line)" stroke-width="1">${g}</g>
+ <path d="M${A}Q${mx+nx},${my+ny} ${B}" fill="none" stroke="var(--tq)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 9"/>
+ <path d="M${A}Q${mx+nx},${my+ny} ${B}" fill="none" stroke="var(--tq)" stroke-width="2.5" opacity=".55"/>
+ <circle cx="${A[0]}" cy="${A[1]}" r="9" fill="#4a86c5" stroke="#fff" stroke-width="3"/><text x="${A[0]+14}" y="${A[1]+4}" fill="var(--ink)" font-size="13" font-weight="600">You</text>
+ <circle cx="${B[0]}" cy="${B[1]}" r="11" fill="var(--tq2)" stroke="#fff" stroke-width="3"/><text x="${B[0]}" y="${B[1]+4}" fill="#fff" font-size="12" text-anchor="middle">⚡</text>
+ <text x="${B[0]+16}" y="${B[1]+4}" fill="var(--ink)" font-size="13" font-weight="600">${esc(s.city)}</text></svg>`}
+const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' d ago'};
+// ---- pages ----
+const pages={
+home:()=>`<section class="card hero"><h1>Find the nearest EV charging station</h1><p>Type a city, road or landmark. The prototype resolves it to coordinates, scans the station dataset, picks the closest station by geodesic distance and draws a route map.</p><a class="btn" href="#finder" style="background:#fff;color:var(--tq2)">Open Finder →</a></section>
+<div class="grid">${[['Geocode','Place name becomes latitude and longitude.'],['Search','Every valid station row is compared by geodesic distance.'],['Route','A driving route is drawn between you and the station.'],['Save','History, favourites and added stations persist in your browser.']].map((s,i)=>`<div class="card step"><b>${i+1}</b><h2>${s[0]}</h2><span class="mut">${s[1]}</span></div>`).join('')}</div>
+<div class="card"><h2>At a glance</h2><div class="stat"><div><span>Stations</span><b>${all().length}</b></div><div><span>Searches saved</span><b>${hist.length}</b></div><div><span>Favourites</span><b>${fav.length}</b></div></div></div>`,
+finder:()=>{const s=last&&all().find(x=>x.id===last.sid);
+ return`<h1>Station Finder</h1><p class="sub">Enter a city, road or landmark.</p><div class="card"><form onsubmit="event.preventDefault();search(document.getElementById('q').value)" class="row"><input id="q" class="grow" placeholder="e.g. Kanpur, Connaught Place, Gateway of India" value="${last?esc(last.q):''}"><button type="submit">Find station</button></form>
+ <div class="chips">${['Kanpur','Connaught Place','Gateway of India','Bhubaneswar','Prayagraj','26.45, 80.33'].map(c=>`<button class="chip" onclick="search('${c}')">${c}</button>`).join('')}</div>${msg?`<div class="msg">${esc(msg)}</div>`:''}</div>
+ ${s?`<div class="card"><span class="tag">${esc(s.type)}</span> <h2 style="display:inline;margin-left:6px">${esc(s.name)}</h2><p class="mut" style="margin:4px 0 0">${esc(s.address)}, ${esc(s.state)}</p>
+ <div class="stat"><div><span>Geodesic distance</span><b>${last.km.toFixed(1)} km</b></div><div><span>Est. road distance</span><b>≈ ${(last.km*1.25).toFixed(0)} km</b></div><div><span>Origin</span><b>${last.u[0].toFixed(3)}, ${last.u[1].toFixed(3)}</b></div></div>
+ <div class="row" style="margin-top:10px"><button onclick="tf('${s.id}')" class="${fav.includes(s.id)?'':'g'}">${fav.includes(s.id)?'★ Saved':'☆ Save station'}</button></div>${mapSVG(last.u,s)}
+ <p class="warn">Prototype map: schematic only, with an illustrative route curve. Station records are sample data; confirm availability and connector compatibility before travelling.</p></div>`:''}`},
+stations:()=>{const f=(document.getElementById('flt')||{}).value||'';const rows=all().filter(s=>(s.name+s.city+s.state+s.type).toLowerCase().includes(f.toLowerCase()));
+ return`<h1>Station Dataset</h1><p class="sub">Mirrors <code>ev-charging-stations-india.csv</code> columns. Stations you add are kept in local storage.</p>
+ <div class="card"><h2>Add a station</h2><form onsubmit="event.preventDefault();addSt(this)" class="row"><input name="name" placeholder="Name" required><input name="city" placeholder="City" required><input name="state" placeholder="State" required><input name="lat" type="number" step="any" min="-90" max="90" placeholder="Latitude" required><input name="lon" type="number" step="any" min="-180" max="180" placeholder="Longitude" required><select name="type"><option>AC</option><option>DC Fast</option></select><button>Add</button></form></div>
+ <div class="card"><input id="flt" placeholder="Filter stations…" value="${esc(f)}" oninput="keep()" style="width:100%;margin-bottom:10px"><div class="tw"><table><tr><th>Name</th><th>City</th><th>State</th><th>Lat</th><th>Lon</th><th>Type</th><th></th></tr>
+ ${rows.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.city)}</td><td>${esc(s.state)}</td><td>${s.lat}</td><td>${s.lon}</td><td><span class="tag">${esc(s.type)}</span></td><td>${s.id[0]=='c'?`<button class="g s" onclick="del('${s.id}')">Remove</button>`:''}</td></tr>`).join('')||'<tr><td colspan="7" class="mut">No matches.</td></tr>'}</table></div></div>`},
+saved:()=>{const fs=fav.map(id=>all().find(s=>s.id===id)).filter(Boolean);
+ return`<h1>Saved</h1><p class="sub">Stored only in this browser.</p><div class="card"><h2>Favourite stations</h2>${fs.map(s=>`<div class="li"><span><b>${esc(s.name)}</b><br><span class="mut">${esc(s.address)}</span></span><button class="g s" onclick="tf('${s.id}')">Remove</button></div>`).join('')||'<p class="mut">None yet. Save one from the Finder.</p>'}</div>
+ <div class="card"><div class="row" style="justify-content:space-between;align-items:center"><h2>Search history</h2>${hist.length?'<button class="g s" onclick="clr()">Clear history</button>':''}</div>${hist.map(h=>`<div class="li"><span><b>${esc(h.q)}</b> → ${esc(h.name)}<br><span class="mut">${h.km.toFixed(1)} km · ${ago(h.t)}</span></span><button class="g s" onclick="location.hash='finder';search('${esc(h.q).replace(/'/g,'')}')">Run again</button></div>`).join('')||'<p class="mut">No searches yet.</p>'}</div>
+ <button class="g" onclick="if(confirm('Reset all saved data?')){hist=[];fav=[];custom=[];last=null;['evf_hist','evf_fav','evf_custom','evf_last'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});render()}">Reset all data</button>`},
+about:()=>`<h1>About the Project</h1><p class="sub">EV Charging Finder · B.Tech CSE-B · Nishtha Srivastava (2301650100104)</p>
+<div class="card"><h2>Workflow</h2><p>User input → geocoding (Nominatim) → CSV station search → geodesic nearest → OSRM route → Folium HTML map. This prototype replicates the flow in the browser using a built-in gazetteer, sample stations and an SVG map.</p></div>
+<div class="card"><h2>Prototype vs. original</h2><div class="tw"><table><tr><th>Stage</th><th>Original</th><th>Prototype</th></tr><tr><td>Geocoding</td><td>geopy + Nominatim</td><td>Offline city list or lat, lon</td></tr><tr><td>Stations</td><td>Bundled CSV</td><td>Sample rows + your additions</td></tr><tr><td>Distance</td><td>geopy geodesic</td><td>Haversine (close approximation)</td></tr><tr><td>Route</td><td>OSRM</td><td>Illustrative curve</td></tr><tr><td>Map</td><td>Folium / Leaflet</td><td>Inline SVG</td></tr></table></div></div>
+<div class="card"><h2>Limitations</h2><p class="mut">Nearest station only. No live availability, pricing or connector data. Geodesic distance is not road distance. Upstream source credited to Sonu Biswal; this prototype is a separate study implementation.</p></div>`};
+function tf(id){fav=fav.includes(id)?fav.filter(x=>x!==id):fav.concat(id);P('evf_fav',fav);render()}
+function clr(){hist=[];P('evf_hist',hist);render()}
+function del(id){custom=custom.filter(s=>s.id!==id);fav=fav.filter(x=>x!==id);P('evf_custom',custom);P('evf_fav',fav);render()}
+function addSt(f){const d=new FormData(f);custom.push({id:'c'+Date.now(),name:d.get('name'),city:d.get('city'),state:d.get('state'),address:d.get('city')+', '+d.get('state'),lat:+d.get('lat'),lon:+d.get('lon'),type:d.get('type')});P('evf_custom',custom);render()}
+function keep(){const el=document.getElementById('flt'),v=el.value;render();const n=document.getElementById('flt');n.focus();n.setSelectionRange(v.length,v.length)}
+function render(){let r=(location.hash||'#home').slice(1);if(!pages[r])r='home';
+ document.getElementById('app').innerHTML=pages[r]();
+ document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+r))}
+addEventListener('hashchange',()=>{msg='';render();scrollTo(0,0)});render();
+</script></body></html>
